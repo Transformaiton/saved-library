@@ -1,30 +1,30 @@
-// הספרייה של השמורים: קריאת התיקייה "שמורים" באינסטגרם, בקריאה בלבד.
-// רץ בתוך טאב מחובר של instagram.com: דרך Claude in Chrome, או מהסימנייה שב-start.html.
-// מה הקוד עושה: מבקש מאינסטגרם את אותה רשימה שהאתר עצמו טוען כשגוללים בשמורים (בקשות GET בלבד),
-// בהפסקה של 2.5 עד 5.5 שניות בין עמוד לעמוד, ומוריד קובץ JSON אחד למחשב.
-// מה הקוד לא עושה: לא לוחץ על שום דבר באינסטגרם, לא עושה לייק, לא שומר, לא מסיר, לא שולח הודעה,
-// ולא שולח את המידע לשום מקום חוץ מהקובץ שיורד אצלך.
+// Saved Library by Transformaiton.com: read the Instagram Saved folder, read-only.
+// Runs inside a logged-in instagram.com tab: through Claude in Chrome, or from the bookmark on start.html.
+// What this code does: asks Instagram for the same list the site itself loads when you scroll Saved (GET requests only),
+// pauses 2.5 to 5.5 seconds between pages, and downloads one JSON file to this computer.
+// What this code does not do: it does not click anything on Instagram, like, save, unsave, or send a message,
+// and it does not send the data anywhere except the file that downloads for you.
 (() => {
   const VERSION = 'saved-library/1';
   const LIMIT = Number(window.SAVED_LIMIT) || 3000;
   const H = { 'X-IG-App-ID': '936619743392459', 'X-Requested-With': 'XMLHttpRequest' };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   if (!/(^|\.)instagram\.com$/.test(location.hostname)) {
-    alert('צריך להיות באתר instagram.com, מחובר לחשבון שלך, ואז ללחוץ שוב על הסימנייה.');
+    alert('Open instagram.com, log in to your account, then click the bookmark again.');
     return 'NOT_INSTAGRAM';
   }
   if (window.__saved && !window.__saved.done) return 'ALREADY_RUNNING';
   const S = window.__saved = { n: 0, stage: 'list', done: false, error: '', file: '', thumbs: 0 };
 
-  // חלונית התקדמות קטנה. היא לא חוסמת את הדף, ואין בה שום פעולה על החשבון.
+  // A small progress panel. It does not block the page, and it has no action on the account.
   const box = document.createElement('div');
-  box.setAttribute('dir', 'rtl');
+  box.setAttribute('dir', 'ltr');
   box.style.cssText = 'position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#0b1424;color:#fff;' +
     'font:600 16px/1.5 system-ui,-apple-system,Segoe UI,Arial;padding:14px 22px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.35);' +
     'border:3px solid #77CEBF;min-width:300px;text-align:center;pointer-events:none';
   document.body.appendChild(box);
-  const show = (main, sub) => { box.innerHTML = `<div style="font-size:19px">${main}</div><div style="opacity:.75;font-size:13px">${sub || 'קריאה בלבד: בלי לייק, בלי שמירה ובלי שום שינוי בחשבון'}</div>`; };
-  show('מתחיל לקרוא את השמורים שלך');
+  const show = (main, sub) => { box.innerHTML = `<div style="font-size:19px">${main}</div><div style="opacity:.75;font-size:13px">${sub || 'Read-only: no likes, no saves, and no change to the account'}</div>`; };
+  show('Reading your saved posts');
 
   const kindOf = m => m.product_type === 'clips' ? 'reel' : ({ 1: 'photo', 2: 'video', 8: 'carousel' }[m.media_type] || 'post');
   const thumbOf = m => {
@@ -59,13 +59,13 @@
         return j;
       }
       if (r.status === 401 || r.status === 403) throw new Error('not_logged_in');
-      if (r.status === 429 || r.status >= 500) { show('אינסטגרם ביקש להאט, מחכה דקה וממשיך', `נקראו עד עכשיו ${S.n}`); await sleep(60000); continue; }
+      if (r.status === 429 || r.status >= 500) { show('Instagram asked to slow down. Waiting a minute, then continuing', `Read so far: ${S.n}`); await sleep(60000); continue; }
       throw new Error('http_' + r.status);
     }
     throw new Error('rate_limited');
   };
 
-  // תמונה קטנה לכל פוסט, נשמרת בתוך הקובץ כדי שהספרייה תעבוד גם בלי רשת, גם אחרי שהקישורים של אינסטגרם פגים.
+  // A small image for each post, stored inside the file so the library still works offline, after Instagram's image links expire.
   const shrink = async url => {
     const r = await fetch(url, { mode: 'cors', credentials: 'omit' });
     if (!r.ok) return '';
@@ -89,7 +89,7 @@
         rows.push(rowOf(m, rows.length + 1));
       }
       S.n = rows.length;
-      show(`נקראו ${rows.length.toLocaleString('he-IL')} שמורים`);
+      show(`Read ${rows.length.toLocaleString('en-US')} saved posts`);
       if (!j.more_available || !j.next_max_id) break;
       maxId = j.next_max_id;
       await sleep(2500 + Math.random() * 3000);
@@ -103,7 +103,7 @@
         try { row.thumb = row._thumb ? await shrink(row._thumb) : ''; } catch (e) { row.thumb = ''; }
         delete row._thumb;
         S.thumbs++;
-        if (S.thumbs % 20 === 0) show(`מכין תמונות קטנות ${S.thumbs.toLocaleString('he-IL')} מתוך ${rows.length.toLocaleString('he-IL')}`);
+        if (S.thumbs % 20 === 0) show(`Preparing small images ${S.thumbs.toLocaleString('en-US')} of ${rows.length.toLocaleString('en-US')}`);
         await sleep(120);
       }
     };
@@ -116,15 +116,15 @@
     a.download = S.file = `instagram-saved-${today}.json`;
     document.body.appendChild(a); a.click(); a.remove();
     S.stage = 'saved';
-    show(`מוכן: ${rows.length.toLocaleString('he-IL')} שמורים`, `הקובץ ${S.file} ירד לתיקיית ההורדות. אפשר לחזור לכלי ולהמשיך.`);
+    show(`Ready: ${rows.length.toLocaleString('en-US')} saved posts`, `The file ${S.file} downloaded to your Downloads folder. Go back to the assistant and continue.`);
     setTimeout(() => box.remove(), 20000);
   };
 
-  const MSG = { not_logged_in: 'צריך להתחבר לאינסטגרם בדפדפן הזה ולנסות שוב', rate_limited: 'אינסטגרם ביקש להאט. כדאי לנסות שוב בעוד כמה דקות',
-                no_saved_posts: 'לא נמצאו פוסטים שמורים בחשבון הזה' };
-  run().catch(e => { S.error = String(e.message || e); show('הקריאה נעצרה', MSG[S.error] || S.error); })
+  const MSG = { not_logged_in: 'Log in to Instagram in this browser and try again', rate_limited: 'Instagram asked to slow down. Try again in a few minutes',
+                no_saved_posts: 'No saved posts were found on this account' };
+  run().catch(e => { S.error = String(e.message || e); show('The read stopped', MSG[S.error] || S.error); })
        .finally(() => { S.done = true; });
-  // לבקרה מתוך Claude in Chrome: מחזיר רק מספרים ושם קובץ, אף פעם לא טקסט שכתב מישהו אחר
+  // For control from Claude in Chrome: returns only numbers and a filename, never text someone else wrote
   window.__savedPoll = async () => {
     for (let k = 0; k < 25 && !S.done; k++) await sleep(1000);
     return ['SAVED', 'STATE', S.n, S.thumbs, S.stage, S.done ? 1 : 0, S.error, S.file].join('|');
