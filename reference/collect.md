@@ -1,29 +1,29 @@
-# הקריאה מאינסטגרם: מה בדיוק קורה
+# Reading from Instagram: exactly what happens
 
-## מה הקוד עושה
-`scripts/collector.js` רץ בתוך טאב של instagram.com שבו האדם כבר מחובר. הוא מבקש מהאתר את הרשימה `api/v1/feed/saved/posts`, אותה רשימה שאינסטגרם עצמו טוען כשגוללים בתיקייה "שמורים", עמוד אחרי עמוד (בערך 21 פוסטים לעמוד), עם הפסקה אקראית של 2.5 עד 5.5 שניות בין עמודים. אחר כך הוא מקטין את התמונה של כל פוסט ל-120 על 150 פיקסלים, כדי שהספרייה תעבוד גם בלי רשת, ומוריד קובץ JSON אחד.
+## What the code does
+`scripts/collector.js` runs inside an instagram.com tab where the person is already logged in. It asks the site for the list `api/v1/feed/saved/posts`, the same list Instagram itself loads when you scroll the Saved folder, page after page (about 21 posts per page), with a random pause of 2.5 to 5.5 seconds between pages. It then shrinks each post's image to 120 by 150 pixels, so the library still works offline, and downloads one JSON file.
 
-## מה הוא לא עושה
-- אין אף בקשה שמשנה משהו: רק בקשות קריאה (GET). אין לייק, שמירה, הסרה, מעקב, תגובה או הודעה.
-- לא לוחץ על שום כפתור של אינסטגרם. ההורדה עצמה היא קישור שהקוד יוצר בעצמו.
-- לא שולח את המידע לשום שרת. אין בקוד אף כתובת חוץ מאינסטגרם ושרת התמונות שלו.
-- לא קורא הודעות, עוקבים, סיסמה או עוגיות.
+## What it does not do
+- There is no request that changes anything: only read requests (GET). No like, save, unsave, follow, comment, or message.
+- It does not click any Instagram button. The download itself is a link the code creates.
+- It does not send the information to any server. The code contains no address other than Instagram and Instagram's image servers.
+- It does not read messages, followers, the password, or cookies.
 
-## מה יש בקובץ
-לכל פוסט: מזהה, קישור, סוג (ריל, תמונה, קרוסלה), שם המשתמש של היוצר, האם החשבון פרטי, הכיתוב (עד 2,200 תווים), תאריך פרסום, לייקים, תגובות, צפיות, אורך, ותמונה קטנה. הסדר הוא סדר השמירה: הראשון הוא מה שנשמר אחרון.
+## What is in the file
+For each post: an id, a link, a kind (reel, photo, carousel), the creator's username, whether the account is private, the caption (up to 2,200 characters), the date posted, likes, comments, plays, duration, and a small image. The order is the save order: the first row is the one saved most recently.
 
-## הסימנייה (start.html)
-- הכפתור בדף הוא סימנייה שמכילה את אותו קוד בדיוק. גוררים אותו לסרגל הסימניות, ולוחצים עליו כשנמצאים ב-instagram.com.
-- **ספארי:** לא תמיד מאפשר לגרור. בתפריט "פיתוח" צריך לסמן "אפשר JavaScript מסרגל החכם". קל יותר להשתמש בכרום.
-- **פיירפוקס:** עובד. אם לא קורה כלום, לבדוק שהסימנייה נשמרה עם הכתובת שמתחילה ב-`javascript:`.
-- **ארגון שחוסם סימניות עם קוד** (מחשב עבודה): אפשר להשתמש בקלוד עם התוסף לכרום, או במחשב אחר.
-- **טלפון:** לא נתמך.
+## The bookmark (start.html)
+- The button on the page is a bookmark that contains this same code. Drag it to the bookmarks bar, and click it while you are on instagram.com.
+- **Safari:** dragging does not always work. In the Develop menu, turn on "Allow JavaScript from Smart Search field". It is easier to open this page in Chrome.
+- **Firefox:** it works. If nothing happens, check that the bookmark was saved with an address that starts with `javascript:`.
+- **A workplace that blocks bookmarks containing code:** use Claude with the Chrome extension, or use another computer.
+- **Phone:** not supported.
 
-## יותר מ-3,000 שמורים
-לפני ההרצה, בטאב של אינסטגרם: `window.SAVED_LIMIT = 6000` (בדרך א מוסיפים את השורה בתחילת הקוד). מעל 3,000 ההרצה ארוכה, וכדאי להסביר את זה.
+## More than 3,000 saved posts
+Before the run, in the Instagram tab: `window.SAVED_LIMIT = 6000` (on the browser-connection path, add that line at the start of the code). Above 3,000 the run is long, and you should say so.
 
-## אם אינסטגרם מבקש להאט
-הקוד מחכה דקה ומנסה שוב, עד שלוש פעמים, ואז עוצר עם `rate_limited`. לא מקצרים את ההפסקות ולא מריצים במקביל. מחכים 10 דקות ומריצים שוב מההתחלה.
+## If Instagram asks to slow down
+The code waits one minute and tries again, up to three times, then stops with `rate_limited`. Do not shorten the pauses and do not run two reads at once. Wait 10 minutes and run again from the start.
 
-## המסלול בלי תוסף ובלי סימנייה
-ההורדה הרשמית של אינסטגרם ("הורדת המידע שלך" בהגדרות, בפורמט JSON) כוללת את רשימת השמורים, אבל רק קישור ושם יוצר, בלי כיתובים. מזה אי אפשר לסכם פוסטים או לבנות מדפים לפי נושא, ולכן הסקיל לא משתמש בה.
+## The path with no extension and no bookmark
+Instagram's official download ("Download your information" in Settings, JSON format) includes the saved list, but only a link and a creator name, with no captions. You cannot summarize posts or build shelves by subject from that, so this skill does not use it.
